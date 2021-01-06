@@ -38,16 +38,15 @@ namespace DIO.Series
 
             foreach(var serie in lista)
             {
-                Console.WriteLine("#ID {0}: - {1}", serie.getId(), serie.getTitulo());
+                if(serie.getExcluir())
+                    Console.WriteLine("#ID {0}: - X {1}", serie.getId(), serie.getTitulo());
+                else    
+                    Console.WriteLine("#ID {0}: - {1}", serie.getId(), serie.getTitulo());
             }
         }
 
-        private static void InserirSerie()
+        private static Serie novaSerie(int indRepo)
         {
-            Console.WriteLine("Inserir uma nova Série");
-
-            var lista = repository.Lista();
-
             foreach(int ge in Enum.GetValues(typeof(Genero)))
                 Console.WriteLine("{0} - {1}", ge, Enum.GetName(typeof(Genero), ge));
             
@@ -58,20 +57,72 @@ namespace DIO.Series
             string titulo = Console.ReadLine();
 
             Console.Write("Digite o Ano da Série: ");
-            int ano       = int.Parse(Console.ReadLine());
+            int anoEnt    = int.Parse(Console.ReadLine());
             
             Console.Write("Digite a descrição da Série: ");
             string desc = Console.ReadLine();
 
             Serie nv = new Serie(
-                id        : repository.ProximoId(),
+                id        : indRepo,
                 genero    : (Genero)genero,
                 titulo    : titulo,
-                ano       : ano,
+                ano       : anoEnt,
                 descricao : desc
             );
 
-            repository.Insere(nv);
+            return nv;
+        }
+
+        private static void InserirSerie()
+        {
+            Console.WriteLine("Inserir uma nova Série");
+
+            repository.Insere(novaSerie(repository.ProximoId()));
+        }
+
+        private static void AtualizarSerie()
+        {
+            Console.Write("Digite o id da série: ");
+            int indRepo   = int.Parse(Console.ReadLine());
+
+            repository.Atualiza(indRepo, novaSerie(indRepo));
+        }
+        private static void ExcluirSerie()
+        {
+            Console.Write("Digite o id da série: ");
+            int indRepo   = int.Parse(Console.ReadLine());
+            string re;
+            do{
+                Console.Write("Deseja mesmo excluir essa série? ");
+                re = Console.ReadLine().ToUpper();
+            }while(re != "N" || re != "NÂO" || re != "NAO" || re != "S" || re != "SIM");
+
+            if(re == "N" || re == "NÂO" || re == "NAO")
+            {
+                Console.WriteLine("Exclusão cancelada!");
+                return;
+            }
+            repository.Excluir(indRepo);
+        }
+
+        private static void VisualizarSerie()
+        {
+            if(repository.Lista().Count > 0)
+            {
+                int indRepo;
+                do{
+                    Console.Write("Digite o id da série: ");
+                    indRepo = int.Parse(Console.ReadLine());
+                }while(indRepo < 0 || indRepo > repository.Lista().Count);
+
+                var serie   = repository.RetornaPorId(indRepo);
+
+                Console.WriteLine(serie);
+            }
+            else
+            {
+                Console.Write("Nenhuma série cadastrada!");
+            }
         }
         
         static void Main(string[] args)
@@ -88,7 +139,7 @@ namespace DIO.Series
                     case "2":
                         InserirSerie();
                         break;
-                    /*case "3":
+                    case "3":
                         AtualizarSerie();
                         break;
                     case "4":
@@ -96,7 +147,7 @@ namespace DIO.Series
                         break;
                     case "5":
                         VisualizarSerie();
-                        break;*/
+                        break;
                     case "C":
                         Console.Clear();
                         break;
